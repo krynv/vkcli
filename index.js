@@ -2,7 +2,7 @@
 const chalk = require("chalk");
 const figlet = require("figlet");
 const exec = require("child_process").exec;
-const ora = require("ora");
+const Ora = require("ora");
 const fs = require("fs");
 const https = require("https");
 
@@ -11,8 +11,6 @@ const readline = require("readline").createInterface({
   input: process.stdin,
   output: process.stdout
 });
-
-const spinner = ora();
 
 function execShellCommand(cmd) {
   return new Promise((resolve, reject) => {
@@ -37,17 +35,23 @@ console.log(
 
 // 3. ask user for a project name
 readline.question(`What is your project name? `, name => {
-  console.log(`\nCreating a React project named: ${name} ...`);
-
-  spinner.start();
+  console.log(`\n`); // add a space
+  let firstSpinner = new Ora(
+    `Creating a new React project named: ${name} ... this may take a while\n`
+  );
+  firstSpinner.start();
   // 4. Create a create-react-app project
   execShellCommand(`npx create-react-app ${name}`).then(() => {
-    spinner.stop();
-    console.log(`\nProject ${name} created...`);
+    firstSpinner.succeed();
+    console.log(`Project ${name} created!\n\n`);
 
     // 5. Remove the existing .gitignore file from that project folder
-    console.log(`\nRemoving old ${name}/.gitignore file...`);
-    spinner.start();
+    let secondSpinner = new Ora(
+      `Removing the original ${name}/.gitignore file...\n`
+    );
+
+    secondSpinner.start();
+
     fs.unlink(`./${name}/.gitignore`, err => {
       if (err) {
         console.error(err);
@@ -55,13 +59,15 @@ readline.question(`What is your project name? `, name => {
       }
 
       //file removed
-      spinner.stop();
+      secondSpinner.succeed();
+      console.log(`Original ${name}/.gitignore file removed!\n\n`);
 
       // 6. Place new .gitignore file in that project directory
-      console.log(`\nPlacing new gitignore file...`);
-      spinner.start();
+      let thirdSpinner = new Ora(`Placing new .gitignore file...\n`);
+      thirdSpinner.start();
 
       let newGitignore = fs.createWriteStream(`./${name}/.gitignore`); // cannot declare anywhere else as the folder has not been created before this point
+
       https
         .get(
           `https://raw.githubusercontent.com/github/gitignore/master/Node.gitignore`,
@@ -69,8 +75,10 @@ readline.question(`What is your project name? `, name => {
             res.pipe(newGitignore);
             newGitignore.on("finish", () => {
               newGitignore.close();
-              spinner.stop();
-              console.log(`\nNew ${name}/.gitignore created...`);
+              thirdSpinner.succeed();
+              console.log(
+                `New ${name}/.gitignore created!\n\n\nClosing CLI tool\n`
+              );
               readline.close();
               process.exit();
             });
