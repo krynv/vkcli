@@ -72,12 +72,14 @@ readline.question(`What is your project name? `, name => {
               spinner.stop();
               console.log(`\nNew ${name}/.gitignore created...`);
               readline.close();
+              process.exit();
             });
           }
         )
         .on("error", err => {
           fs.unlink(newGitignore);
           console.error(err);
+          process.exit();
         });
     });
   });
