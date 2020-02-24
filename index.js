@@ -71,6 +71,7 @@ readline.question(`What is your project name? `, name => {
               newGitignore.close();
               spinner.stop();
               console.log(`\nNew ${name}/.gitignore created...`);
+              readline.close();
             });
           }
         )
